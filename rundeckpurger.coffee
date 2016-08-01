@@ -24,7 +24,7 @@ delCargo = async.cargo (ids,cb)->
 
 async.forever (next)->
 	request {method:"GET", url:listurl, qs:listqs, json:true}, (er,ro,rb)->
-		if rb?.events? and Array.isArray(rb.events)
+		if rb?.events? and Array.isArray(rb.events) and rb.events.length > 0
 			for ev in rb.events
 				delCargo.push(ev.execution.id)
 			delCargo.drain = ->
@@ -34,9 +34,11 @@ async.forever (next)->
 			delCargo.drain()
 		else
 			if rb.error?
-				console.log rb.message
+				console.log "Error in response : #{rb.message}"
+			else if Array.isArray(rb.events) and rb.events.length is 0
+				console.log "No events found"
 			else
-				console.log "No events found\n", rb
+				console.log "Unable to parse response", rb
 			next(true)
 ,(err)->
 	process.exit 0
